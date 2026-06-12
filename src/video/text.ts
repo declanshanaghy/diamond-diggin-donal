@@ -101,4 +101,28 @@ export function overlayTextClear(p: string, x: number, y: number, s = 1): void {
   }
 }
 
+// Half-size (6x6) overlay text for fine print: samples every other pixel of
+// the 12x12 glyphs.
+export function overlayTextSmall(p: string, x: number, y: number, c: number): void {
+  for (const ch of p) {
+    const code = (/[a-zA-Z0-9]/.test(ch) ? ch : ' ').charCodeAt(0);
+    if (code - 32 >= 0 && code - 32 < 0x5f) {
+      const glyph = cgaFont[code - 32] ?? cgaFont[0]!;
+      for (let row = 0; row < CHR_H; row += 2)
+        for (let bx = 0; bx < CHR_W; bx++) {
+          const b = glyph[row * CHR_W + bx];
+          for (let p2 = 0; p2 < 4; p2 += 2) {
+            const v = (b >> (6 - p2 * 2)) & 3;
+            if (v === 0) continue;
+            const px = x + ((bx * 4 + p2) >> 1);
+            const py = y + (row >> 1);
+            if (px < 0 || px >= WIDTH || py < 0 || py >= HEIGHT) continue;
+            screen.overlayBuf[py * WIDTH + px] = c;
+          }
+        }
+    }
+    x += 6;
+  }
+}
+
 export { WIDTH, HEIGHT, getPixel };

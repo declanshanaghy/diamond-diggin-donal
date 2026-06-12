@@ -9,7 +9,7 @@ import { getlives, addlife } from './digger';
 import { drawlives } from '../drawing';
 import { incpenalty, killsound, setupsound } from '../sound/sound';
 import { clearScreen, setPalette, setIntensity } from '../video/screen';
-import { input, kbhit, getkey } from '../input';
+import { input, kbhit, getkey, focusInitials, blurInitials } from '../input';
 
 interface ScoreData {
   score: number;
@@ -199,6 +199,7 @@ function* getinitial(x: number, y: number): Generator<void, string, void> {
 
 function* getinitials(): Generator<void, void, void> {
   input.captureRaw = true;
+  focusInitials(); // summon the OS keyboard on mobile
   yield;
   outtext('ENTER YOUR', 100, 70, 3);
   outtext(' INITIALS', 100, 90, 3);
@@ -229,6 +230,7 @@ function* getinitials(): Generator<void, void, void> {
   setupsound();
   clearScreen();
   setIntensity(0);
+  blurInitials(); // dismiss the OS keyboard
   input.captureRaw = false;
 }
 

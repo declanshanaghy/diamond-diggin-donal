@@ -17,7 +17,10 @@ let tickFn: (() => void) | null = null;
 export function startDriver(tick: () => void): void {
   tickFn = tick;
   if (timer === null) timer = window.setInterval(() => tickFn && tickFn(), 1000 / TICK_HZ);
-  const unlock = (): void => {
+  // Audio can only start (and on mobile, restart after interruptions) inside
+  // a user gesture, so keep these listeners for the whole session and resume
+  // whenever the context is not running.
+  const ensureAudio = (): void => {
     if (!ctx) {
       ctx = new AudioContext();
       osc = ctx.createOscillator();
@@ -28,12 +31,11 @@ export function startDriver(tick: () => void): void {
       gain.connect(ctx.destination);
       osc.start();
     }
-    void ctx.resume();
-    window.removeEventListener('keydown', unlock);
-    window.removeEventListener('pointerdown', unlock);
+    if (ctx.state !== 'running') void ctx.resume();
   };
-  window.addEventListener('keydown', unlock);
-  window.addEventListener('pointerdown', unlock);
+  window.addEventListener('keydown', ensureAudio);
+  window.addEventListener('pointerdown', ensureAudio);
+  window.addEventListener('touchstart', ensureAudio, { passive: true });
 }
 
 // Apply one tick's outcome: a tone frequency in Hz (0 = silence) and a

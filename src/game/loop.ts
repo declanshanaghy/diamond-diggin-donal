@@ -30,7 +30,7 @@ import {
 } from '../drawing';
 import { movedrawspr } from '../sprite';
 import { clearScreen, render, setOverlay, setOverlayDim, overlayBuf } from '../video/screen';
-import { outtext, overlayText, overlayTextClear } from '../video/text';
+import { outtext, overlayText, overlayTextClear, overlayTextSmall } from '../video/text';
 import { setDemoLevel } from './level';
 import { game } from './state';
 import { seedrand, randno } from './rng';
@@ -290,9 +290,9 @@ function drawSplashPanel(): void {
   overlayText('DIAMOND', 76, 52, 3, 2);
   overlayText('DIGGIN', 88, 82, 2, 2);
   overlayText('DONAL', 100, 112, 1, 2);
-  if (window.matchMedia('(pointer: coarse)').matches) {
-    overlayText('SWIPE THE SCREEN', 64, 168, 3);
-    overlayText('TO CONTROL DONAL', 64, 182, 3);
+  if (window.matchMedia('(pointer: coarse)').matches || location.search.includes('touch')) {
+    // 33 chars at 6px = 198px wide, centered
+    overlayTextSmall('SWIPE THE SCREEN TO CONTROL DONAL', 61, 176, 1);
   }
 }
 
@@ -342,10 +342,18 @@ function* splashScreen(): Frames {
 export function* mainprog(): Frames {
   loadscores();
   input.escape = false;
+  // Flow: splash (first load only) → game → scoreboard → game → ...
+  let firstRun = true;
   do {
     soundstop();
-    yield* splashScreen();
-    if (input.escape) break;
+    if (firstRun) {
+      firstRun = false;
+      yield* splashScreen();
+      if (input.escape) break;
+      yield* gameflow();
+      input.escape = false;
+      continue;
+    }
     creatembspr();
     clearScreen();
     drawtitle();

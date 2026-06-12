@@ -114,9 +114,12 @@ export function initTouch(): void {
       const dx = e.clientX - sx;
       const dy = e.clientY - sy;
       if (Math.abs(dx) < SWIPE_PX && Math.abs(dy) < SWIPE_PX) {
-        // tap = fire
+        // tap = fire; during initials entry a tap summons the OS keyboard
+        if (input.captureRaw) {
+          focusInitials();
+          return;
+        }
         af1pressed = true;
-        if (input.captureRaw) keybuf.push('A');
         return;
       }
       if (Math.abs(dx) > Math.abs(dy)) touchdir = dx > 0 ? DIR_RIGHT : DIR_LEFT;
@@ -124,6 +127,50 @@ export function initTouch(): void {
     },
     { passive: true }
   );
+}
+
+// Hidden text input used during initials entry so mobile devices show the
+// OS keyboard. Its events feed the same key buffer; stopPropagation keeps
+// physical keyboards from double-typing via the window handler.
+let initInput: HTMLInputElement | null = null;
+
+function ensureInitInput(): HTMLInputElement {
+  if (!initInput) {
+    const el = document.createElement('input');
+    el.type = 'text';
+    el.autocapitalize = 'characters';
+    el.autocomplete = 'off';
+    el.setAttribute('aria-hidden', 'true');
+    el.style.position = 'fixed';
+    el.style.bottom = '0';
+    el.style.left = '50%';
+    el.style.width = '1px';
+    el.style.height = '1px';
+    el.style.opacity = '0';
+    el.style.border = 'none';
+    document.body.appendChild(el);
+    el.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        keybuf.push('Backspace');
+      }
+    });
+    el.addEventListener('input', () => {
+      for (const ch of el.value) keybuf.push(ch);
+      el.value = '';
+    });
+    initInput = el;
+  }
+  return initInput;
+}
+
+export function focusInitials(): void {
+  ensureInitInput().focus();
+}
+
+export function blurInitials(): void {
+  initInput?.blur();
 }
 
 export function kbhit(): boolean {
