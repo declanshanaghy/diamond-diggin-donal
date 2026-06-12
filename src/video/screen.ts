@@ -26,7 +26,6 @@ let intensity = 0;
 const EXTRA_COLORS = ['#ffffff', '#55ffff'];
 
 let rgba = new Uint32Array(6);
-let rgbaBright = new Uint32Array(6); // splash overlay always renders full bright
 let paletteDirty = true;
 
 function toWord(col: string): number {
@@ -36,11 +35,8 @@ function toWord(col: string): number {
 }
 
 function computeRgba(): void {
-  for (let c = 0; c < 4; c++) {
-    rgba[c] = toWord(CGA_PALETTES[palette][intensity][c]);
-    rgbaBright[c] = toWord(CGA_PALETTES[palette][1][c]);
-  }
-  for (let c = 0; c < 2; c++) rgba[4 + c] = rgbaBright[4 + c] = toWord(EXTRA_COLORS[c]);
+  for (let c = 0; c < 4; c++) rgba[c] = toWord(CGA_PALETTES[palette][intensity][c]);
+  for (let c = 0; c < 2; c++) rgba[4 + c] = toWord(EXTRA_COLORS[c]);
 }
 
 // Masked blit of unpacked color indices (0xff = transparent). Used for the
@@ -185,7 +181,7 @@ export function render(): void {
           p = (0xff << 24) | ((((p >> 1) & 0x7f7f7f) - ((p >> 3) & 0x1f1f1f)) & 0xffffff);
       }
       const o = overlayBuf[i];
-      if (o !== 0xff) p = rgbaBright[o];
+      if (o !== 0xff) p = rgba[o];
       pixels[i] = p;
     }
   }
