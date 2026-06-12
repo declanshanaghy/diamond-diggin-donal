@@ -34,3 +34,18 @@ export function getnmovingbags(): number {
   return 0;
 }
 export function cleanupbags(): void {}
+export function bagexist(_n: number): boolean {
+  return false;
+}
+export function pushbags(_dir: number, _clfirst: number[], _clcoll: number[]): boolean {
+  return true;
+}
+export function pushudbags(_clfirst: number[], _clcoll: number[]): boolean {
+  return true;
+}
+export function bagy(_n: number): number {
+  return 0;
+}
+export function getbagdir(_n: number): number {
+  return -1;
+}

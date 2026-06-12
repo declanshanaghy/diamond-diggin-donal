@@ -11,3 +11,6 @@ export function monleft(): number {
 }
 export function incmont(_n: number): void {}
 export function killmon(_n: number): void {}
+export function killmonsters(_clfirst: number[], _clcoll: number[]): number {
+  return 0;
+}

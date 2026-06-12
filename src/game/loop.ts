@@ -20,7 +20,7 @@ import {
 import { movedrawspr } from '../sprite';
 import { clearScreen, render } from '../video/screen';
 import { outtext } from '../video/text';
-import { game, getlives } from './state';
+import { game } from './state';
 import { seedrand } from './rng';
 import {
   initdigger,
@@ -33,17 +33,19 @@ import {
   isalive,
   killfire,
   erasebonus,
+  initlives,
+  declife,
+  getlives,
+  setBonusVisible,
 } from './digger';
 import { initmonsters, domonsters, erasemonsters, monleft, incmont } from './monster';
 import { initbags, drawbags, dobags, getnmovingbags, cleanupbags } from './bags';
 import {
   loadscores,
-  initlives,
   zeroscores,
   initscores,
   drawscores,
   addscore,
-  declife,
   endofgame,
   showtable,
 } from './scores';
@@ -129,7 +131,7 @@ export function* gameflow(): Frames {
   game.curplayer = 0;
   initlevel();
   zeroscores();
-  game.bonusvisible = true;
+  setBonusVisible(true);
   while (getalllives() !== 0 && !input.escape) {
     while (!game.alldead && !input.escape) {
       initmbspr();

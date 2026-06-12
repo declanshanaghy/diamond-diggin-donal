@@ -13,7 +13,11 @@ export function soundddie(): void {}
 export function soundbreak(): void {}
 export function soundwobble(): void {}
 export function soundfire(_n: number): void {}
+export function soundfireoff(_n: number): void {}
 export function soundexplode(_n: number): void {}
+export function soundbonusoff(): void {}
+// music(0) = bonus tune, music(1) = background tune, music(2) = funeral dirge
+export function music(_tune: number): void {}
 export function sound1up(): void {}
 export function soundbonus(): void {}
 export function soundlevdone(): void {}

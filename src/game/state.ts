@@ -37,7 +37,3 @@ export function levof10(): number {
 export function levno(): number {
   return game.players[game.curplayer].level;
 }
-
-export function getlives(pl: number): number {
-  return game.players[pl]?.lives ?? 0;
-}

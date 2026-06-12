@@ -38,7 +38,8 @@ import {
 } from './sprite';
 import { setPalette, setIntensity } from './video/screen';
 import { outtext } from './video/text';
-import { game, getlives } from './game/state';
+import { game } from './game/state';
+import { getlives } from './game/digger';
 import { levplan, getlevch } from './game/level';
 import { incpenalty } from './sound/sound';
 
