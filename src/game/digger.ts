@@ -492,7 +492,7 @@ function updatedigger(n: number): void {
   d.ry = (d.y - 18) % 18;
 }
 
-function sceatm(n: number): void {
+export function sceatm(n: number): void {
   scoreeatm(n, digdat[n].msc);
   digdat[n].msc <<= 1;
 }
@@ -682,7 +682,7 @@ export function drawemeralds(): void {
 
 const embox = [8, 12, 12, 9, 16, 12, 6, 9];
 
-function hitemerald(x: number, y: number, rx: number, ry: number, dir: number): boolean {
+export function hitemerald(x: number, y: number, rx: number, ry: number, dir: number): boolean {
   let hit = false;
   let r: number;
   x = Math.floor(x);
