@@ -47,6 +47,10 @@ export const field1 = new Int16Array(MSIZE);
 export const field2 = new Int16Array(MSIZE);
 export const field = new Int16Array(MSIZE);
 
+export function getfield(h: number, v: number): number {
+  return field[v * MWIDTH + h];
+}
+
 const bitmasks = [
   0xfffe, 0xfffd, 0xfffb, 0xfff7, 0xffef, 0xffdf, 0xffbf, 0xff7f, 0xfeff, 0xfdff, 0xfbff, 0xf7ff,
 ];

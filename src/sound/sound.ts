@@ -12,6 +12,8 @@ export function soundeatm(): void {}
 export function soundddie(): void {}
 export function soundbreak(): void {}
 export function soundwobble(): void {}
+export function soundwobbleoff(): void {}
+export function soundfalloff(): void {}
 export function soundfire(_n: number): void {}
 export function soundfireoff(_n: number): void {}
 export function soundexplode(_n: number): void {}

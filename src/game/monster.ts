@@ -14,3 +14,6 @@ export function killmon(_n: number): void {}
 export function killmonsters(_clfirst: number[], _clcoll: number[]): number {
   return 0;
 }
+export function checkmonscared(_h: number): void {}
+export function squashmonsters(_bag: number, _clfirst: number[], _clcoll: number[]): void {}
+export function mongold(): void {}
