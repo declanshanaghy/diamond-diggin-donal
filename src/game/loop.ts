@@ -175,7 +175,7 @@ export function* gameflow(): Frames {
       cleanupbags();
       savefield();
       erasemonsters();
-      if (game.players[game.curplayer].levdone) soundlevdone();
+      if (game.players[game.curplayer].levdone) yield* soundlevdone();
       if (countem() === 0 || game.players[game.curplayer].levdone) {
         for (let i = game.curplayer; i < game.diggers + game.curplayer; i++)
           if (getlives(i) > 0 && !digalive(i)) declife(i);
@@ -188,15 +188,10 @@ export function* gameflow(): Frames {
           if (getlives(i) > 0) declife(i);
         drawlives();
       }
-      if (game.alldead && getalllives() === 0 && !input.escape) yield* endofgameframes();
+      if (game.alldead && getalllives() === 0 && !input.escape) yield* endofgame();
     }
     game.alldead = false;
   }
-}
-
-function* endofgameframes(): Frames {
-  endofgame();
-  yield;
 }
 
 // Title screen with the sprite parade, ported from mainprog() of main.c.

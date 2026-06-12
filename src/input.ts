@@ -14,6 +14,10 @@ export const input = {
   pausef: false,
   firepflag: false,
   akeypressed: '',
+  // While true (initials entry), checkkeyb leaves the key buffer to whoever
+  // is consuming raw keys — mirrors the C original where only one reader
+  // calls getkey().
+  captureRaw: false,
 };
 
 // Live pressed state (keydown/keyup), the "interrupt flags" of the original.
@@ -78,16 +82,17 @@ export function initkeyb(): void {
   });
 }
 
-function kbhit(): boolean {
+export function kbhit(): boolean {
   return keybuf.length > 0;
 }
 
-function getkey(): string {
+export function getkey(): string {
   return keybuf.shift() ?? '';
 }
 
 // Per-frame key processing (checkkeyb of input.c).
 export function checkkeyb(): void {
+  if (input.captureRaw) return;
   while (kbhit()) {
     const k = getkey();
     input.akeypressed = k;
