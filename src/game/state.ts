@@ -7,6 +7,7 @@ export interface PlayerData {
   level: number;
   lives: number;
   score: number;
+  levdone: boolean;
 }
 
 export const game = {
@@ -15,7 +16,17 @@ export const game = {
   diggers: 1,
   gauntlet: false,
   levfflag: false, // external level file loaded (unused in this port)
-  players: [{ level: 1, lives: 3, score: 0 }] as PlayerData[],
+  players: [{ level: 1, lives: 3, score: 0, levdone: false }] as PlayerData[],
+  // main.c loop globals
+  ftime: 80000, // µs per frame (12.5 fps); +/- keys adjust by 10000
+  alldead: false,
+  levnotdrawn: false,
+  startlev: 1,
+  unlimlives: false,
+  musicflag: true,
+  soundflag: true,
+  penalty: 0,
+  bonusvisible: false,
 };
 
 export function levof10(): number {

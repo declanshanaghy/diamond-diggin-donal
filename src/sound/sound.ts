@@ -24,3 +24,4 @@ export function setupsound(): void {}
 export function killsound(): void {}
 export function soundstop(): void {}
 export function soundpause(): void {}
+export function soundpauseoff(): void {}
