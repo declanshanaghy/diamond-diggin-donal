@@ -19,7 +19,7 @@ const CGA_PALETTES: string[][][] = [
 ];
 
 const vbuf = new Uint8Array(WIDTH * HEIGHT); // color index 0..3 per pixel
-let palette = 1;
+let palette = 0;
 let intensity = 0;
 let rgba = new Uint32Array(4);
 let paletteDirty = true;
@@ -33,15 +33,16 @@ function computeRgba(): void {
   }
 }
 
-// gpal(): logical palette 0 is the normal game look (cyan/magenta/white),
-// 1 is the bonus-mode look (green/red/yellow). ginten(): 0 = bright.
+// gpal(): palette 0 = the classic game look (green/red/brown), palette 1 =
+// cyan/magenta/white (high-score flash). ginten(): 1 = bright variants
+// (bonus-mode flicker).
 export function setPalette(pal: number): void {
-  palette = 1 - (pal & 1);
+  palette = pal & 1;
   paletteDirty = true;
 }
 
 export function setIntensity(inten: number): void {
-  intensity = 1 - (inten & 1);
+  intensity = inten & 1;
   paletteDirty = true;
 }
 
