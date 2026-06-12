@@ -3,8 +3,10 @@
 import { initScreen } from './video/screen';
 import { startLoop } from './game/loop';
 import { setupsound } from './sound/sound';
+import { donalize } from './assets/donalize';
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement;
+donalize();
 initScreen(canvas);
 setupsound();
 startLoop();
