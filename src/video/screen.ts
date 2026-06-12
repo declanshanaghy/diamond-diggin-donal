@@ -33,13 +33,15 @@ function computeRgba(): void {
   }
 }
 
+// gpal(): logical palette 0 is the normal game look (cyan/magenta/white),
+// 1 is the bonus-mode look (green/red/yellow). ginten(): 0 = bright.
 export function setPalette(pal: number): void {
-  palette = pal & 1;
+  palette = 1 - (pal & 1);
   paletteDirty = true;
 }
 
 export function setIntensity(inten: number): void {
-  intensity = inten & 1;
+  intensity = 1 - (inten & 1);
   paletteDirty = true;
 }
 

@@ -1,30 +1,39 @@
-// Temporary visual smoke test for the video layer: tiles dirt and draws a
-// sampler of extracted sprites. Replaced by the real game boot as chunks land.
+// Temporary chunk-5 smoke test: render level 1 statics — dirt, tunnels,
+// diamonds, bags, status bar. Replaced by the real game boot as chunks land.
 
-import { cgaSprites } from './assets/sprites';
-import { initScreen, putImage, render, setIntensity } from './video/screen';
+import { MWIDTH, MHEIGHT } from './def';
+import { initScreen, render, clearScreen } from './video/screen';
+import { outtext } from './video/text';
+import {
+  makefield,
+  drawstatics,
+  drawemerald,
+  drawgold,
+  drawlives,
+  creatembspr,
+} from './drawing';
+import { getlevch } from './game/level';
+import { levplan } from './game/level';
 
 const canvas = document.getElementById('screen') as HTMLCanvasElement;
 initScreen(canvas);
-setIntensity(1);
+clearScreen();
 
-const draw = (n: number, x: number, y: number, wBytes = 4, h = 15) =>
-  putImage(x, y, cgaSprites[n].data, cgaSprites[n].mask, wBytes, h);
+creatembspr();
+makefield();
+drawstatics();
 
-// Dirt background à la drawbackg(): sprite 93+l is a 20x4 pattern tiled
-// every 20px horizontally and 4px vertically from y=14.
-for (let y = 14; y < 200; y += 4)
-  for (let x = 0; x < 320; x += 20) draw(94, x, y, 5, 4);
+// Diamonds and bags from the level plan (placement mirrors digger.c/bags.c init).
+let bag = 0;
+for (let y = 0; y < MHEIGHT; y++)
+  for (let x = 0; x < MWIDTH; x++) {
+    const c = getlevch(x, y, levplan());
+    if (c === 'C') drawemerald(x * 20 + 12, y * 18 + 21);
+    if (c === 'B' && bag < 7) drawgold(bag++, 0, x * 20 + 12, y * 18 + 18);
+  }
 
-// Sampler row: digger walk frames, nobbin, hobbin, bag, gold, diamond, cherry.
-const sampler = [0, 1, 2, 56, 69, 70, 71, 73, 62, 65, 66, 67, 68, 108, 81];
-sampler.forEach((n, i) => draw(n, 16 + i * 20, 40));
-
-// Graves
-[57, 58, 59, 60, 61].forEach((n, i) => draw(n, 16 + i * 20, 80));
-
-// Fireballs (8x8, wBytes=2)
-[82, 83, 84, 85, 86, 87].forEach((n, i) => draw(n, 16 + i * 12, 120, 2, 8));
+outtext('00000', 0, 0, 3);
+drawlives();
 
 function frame(): void {
   render();
