@@ -64,6 +64,7 @@ const MOVE: Record<string, 'l' | 'r' | 'u' | 'd' | 'f'> = {
 export function initkeyb(): void {
   window.addEventListener('keydown', (e) => {
     const m = MOVE[e.code];
+    if (m !== undefined && m !== 'f') touchdir = null; // keyboard overrides swipe
     if (m === 'l') leftpressed = aleftpressed = true;
     if (m === 'r') rightpressed = arightpressed = true;
     if (m === 'u') uppressed = auppressed = true;
@@ -83,6 +84,46 @@ export function initkeyb(): void {
   window.addEventListener('blur', () => {
     leftpressed = rightpressed = uppressed = downpressed = f1pressed = false;
   });
+}
+
+// Touch controls: swipe anywhere to steer (Donal keeps digging in the last
+// swiped direction), tap to fire. Any touch also counts as "press any key",
+// and a tap types an A during initials entry so the high-score table works
+// without a keyboard. Keyboard input overrides the remembered swipe.
+let touchdir: number | null = null;
+export function initTouch(): void {
+  const SWIPE_PX = 24;
+  let sx = 0;
+  let sy = 0;
+  let tracking = false;
+  window.addEventListener(
+    'pointerdown',
+    (e) => {
+      sx = e.clientX;
+      sy = e.clientY;
+      tracking = true;
+      start = true;
+    },
+    { passive: true }
+  );
+  window.addEventListener(
+    'pointerup',
+    (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = e.clientX - sx;
+      const dy = e.clientY - sy;
+      if (Math.abs(dx) < SWIPE_PX && Math.abs(dy) < SWIPE_PX) {
+        // tap = fire
+        af1pressed = true;
+        if (input.captureRaw) keybuf.push('A');
+        return;
+      }
+      if (Math.abs(dx) > Math.abs(dy)) touchdir = dx > 0 ? DIR_RIGHT : DIR_LEFT;
+      else touchdir = dy > 0 ? DIR_DOWN : DIR_UP;
+    },
+    { passive: true }
+  );
 }
 
 export function kbhit(): boolean {
@@ -196,5 +237,6 @@ export function readdirect(_n: number): void {
 
 export function getdirect(_n: number): number {
   if (input.autopilot !== null) return input.autopilot;
+  if (keydir === DIR_NONE && touchdir !== null) return touchdir;
   return keydir;
 }

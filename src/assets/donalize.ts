@@ -43,6 +43,29 @@ function face(dir: Dir, loaded: boolean, step: boolean): string[] {
   ];
 }
 
+// Squashed/dying Donal (sprite 25, drawn while crushed, during the death
+// bounce, and as the first morph toward the gravestone): eyes shut behind
+// the glasses, a frown, flattened into the ground.
+function hurtFace(): string[] {
+  return [
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '....33333333....',
+    '..333333333333..',
+    '.33KKKKKKKKKK33.',
+    '.3KKKKK33KKKKK3.',
+    '33K3K3KKKK3K3K33',
+    '.3KKKKK33KKKKK3.',
+    '.33333333333333.',
+    '..33KKKKKKKK33..',
+    '.333KK3333KK333.',
+    '.11111111111111.',
+  ];
+}
+
 function encode(rows: string[]): { data: Uint8Array; mask: Uint8Array } {
   const data = new Uint8Array(4 * 15);
   const mask = new Uint8Array(4 * 15);
@@ -73,4 +96,5 @@ export function donalize(): void {
         const idx = (d * 2 + (loaded ? 0 : 1)) * 3 + anim + 1;
         cgaSprites[idx] = encode(face(dirs[d], loaded, anim === 1));
       }
+  cgaSprites[25] = encode(hurtFace());
 }

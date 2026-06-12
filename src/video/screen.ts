@@ -155,7 +155,8 @@ export function render(): void {
         const x = i % WIDTH;
         const y = (i / WIDTH) | 0;
         if (x >= dimRect.x0 && x < dimRect.x1 && y >= dimRect.y0 && y < dimRect.y1)
-          p = (0xff << 24) | ((p >> 1) & 0x7f7f7f); // 50% toward black
+          // mostly transparent: only 25% toward black
+          p = (0xff << 24) | (((p & 0xffffff) - ((p >> 2) & 0x3f3f3f)) & 0xffffff);
       }
       const o = overlayBuf[i];
       if (o !== 0xff) p = rgba[o];

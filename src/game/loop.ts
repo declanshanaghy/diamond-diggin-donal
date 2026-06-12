@@ -61,6 +61,7 @@ import {
 import {
   input,
   initkeyb,
+  initTouch,
   checkkeyb,
   teststart,
   flushkeybuf,
@@ -357,6 +358,7 @@ export function* mainprog(): Frames {
 // Frame driver: advances the generator at ftime intervals, renders every rAF.
 export function startLoop(): void {
   initkeyb();
+  initTouch();
   const gen = mainprog();
   let acc = 0;
   let last = performance.now();
