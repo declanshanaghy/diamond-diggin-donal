@@ -1,0 +1,18 @@
+{
+  "name": "diamond-diggin-donal",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Diamond Diggin' Donal — a faithful web port of Digger (Windmill Software, 1983), based on the GPL Digger Remastered source by Andrew Jenner.",
+  "license": "GPL-2.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "extract": "node tools/extract/extract.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "vite": "^6.0.0"
+  }
+}
