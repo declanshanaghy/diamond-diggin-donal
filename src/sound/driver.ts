@@ -33,9 +33,14 @@ export function startDriver(tick: () => void): void {
     }
     if (ctx.state !== 'running') void ctx.resume();
   };
+  // Mobile browsers (iOS especially) only honor audio unlock during gesture
+  // *completion* events, so listen to those as well as the starts.
   window.addEventListener('keydown', ensureAudio);
   window.addEventListener('pointerdown', ensureAudio);
+  window.addEventListener('pointerup', ensureAudio);
+  window.addEventListener('click', ensureAudio);
   window.addEventListener('touchstart', ensureAudio, { passive: true });
+  window.addEventListener('touchend', ensureAudio, { passive: true });
 }
 
 // Apply one tick's outcome: a tone frequency in Hz (0 = silence) and a
