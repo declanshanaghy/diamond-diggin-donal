@@ -35,4 +35,32 @@ export function outtext(p: string, x: number, y: number, c: number): void {
   }
 }
 
+// Integer-scaled glyph rendering for the title logo.
+export function gwriteScaled(x: number, y: number, ch: string, c: number, s: number): void {
+  const code = ch.charCodeAt(0);
+  if (code - 32 < 0 || code - 32 >= 0x5f) return;
+  const glyph = cgaFont[code - 32] ?? cgaFont[0]!;
+  const w = CHR_W * 4 * s;
+  const data = new Uint8Array(w * CHR_H * s);
+  for (let row = 0; row < CHR_H; row++)
+    for (let bx = 0; bx < CHR_W; bx++) {
+      const b = glyph[row * CHR_W + bx];
+      for (let p = 0; p < 4; p++) {
+        const v = (b >> (6 - p * 2)) & 3;
+        const col = v === 0 ? 0 : c;
+        for (let sy = 0; sy < s; sy++)
+          for (let sx = 0; sx < s; sx++)
+            data[(row * s + sy) * w + (bx * 4 + p) * s + sx] = col;
+      }
+    }
+  screen.putImageRaw(x, y, data, CHR_W * s, CHR_H * s);
+}
+
+export function outtextScaled(p: string, x: number, y: number, c: number, s: number): void {
+  for (const ch of p) {
+    gwriteScaled(x, y, /[a-zA-Z0-9]/.test(ch) ? ch : ' ', c, s);
+    x += 12 * s;
+  }
+}
+
 export { WIDTH, HEIGHT, getPixel };

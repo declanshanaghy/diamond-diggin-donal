@@ -203,7 +203,6 @@ export function* mainprog(): Frames {
     creatembspr();
     clearScreen();
     drawtitle();
-    outtext('D I G G I N  D O N A L', 28, 0, 3);
     outtext('ONE', 220, 25, 3);
     outtext(' PLAYER ', 192, 39, 3);
     showtable();
