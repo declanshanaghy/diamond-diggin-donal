@@ -290,6 +290,10 @@ function drawSplashPanel(): void {
   overlayText('DIAMOND', 76, 52, 3, 2);
   overlayText('DIGGIN', 88, 82, 2, 2);
   overlayText('DONAL', 100, 112, 1, 2);
+  if (window.matchMedia('(pointer: coarse)').matches) {
+    overlayText('SWIPE THE SCREEN', 64, 168, 3);
+    overlayText('TO CONTROL DONAL', 64, 182, 3);
+  }
 }
 
 function* splashScreen(): Frames {
@@ -320,9 +324,10 @@ function* splashScreen(): Frames {
       step = 0;
       stepLeft = DEMO_SCRIPT[0][1];
     }
+    // mostly on, blinking off briefly every second (12.5 fps)
     blink++;
-    if (blink % 50 === 0) overlayText('PRESS ANY KEY', 82, 152, 3);
-    else if (blink % 50 === 25) overlayTextClear('PRESS ANY KEY', 82, 152);
+    if (blink % 12 === 0) overlayText('PRESS ANY KEY', 82, 152, 3);
+    else if (blink % 12 === 10) overlayTextClear('PRESS ANY KEY', 82, 152);
     yield;
   }
   input.autopilot = null;
