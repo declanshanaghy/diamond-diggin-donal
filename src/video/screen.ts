@@ -110,6 +110,25 @@ export function getPixel(x: number, y: number): number {
   return vbuf[y * WIDTH + x];
 }
 
+// Splash overlay: a non-destructive layer composited at render time.
+// overlayBuf holds a color index per pixel (0xff = transparent); the dim
+// rect darkens the game behind the splash panel by half.
+export const overlayBuf = new Uint8Array(WIDTH * HEIGHT).fill(0xff);
+let overlayActive = false;
+let dimRect: { x0: number; y0: number; x1: number; y1: number } | null = null;
+
+export function setOverlay(active: boolean): void {
+  overlayActive = active;
+  if (!active) {
+    overlayBuf.fill(0xff);
+    dimRect = null;
+  }
+}
+
+export function setOverlayDim(x0: number, y0: number, x1: number, y1: number): void {
+  dimRect = { x0, y0, x1, y1 };
+}
+
 let ctx: CanvasRenderingContext2D;
 let imageData: ImageData;
 let pixels: Uint32Array;
@@ -127,6 +146,21 @@ export function render(): void {
     computeRgba();
     paletteDirty = false;
   }
-  for (let i = 0; i < vbuf.length; i++) pixels[i] = rgba[vbuf[i]];
+  if (!overlayActive) {
+    for (let i = 0; i < vbuf.length; i++) pixels[i] = rgba[vbuf[i]];
+  } else {
+    for (let i = 0; i < vbuf.length; i++) {
+      let p = rgba[vbuf[i]];
+      if (dimRect) {
+        const x = i % WIDTH;
+        const y = (i / WIDTH) | 0;
+        if (x >= dimRect.x0 && x < dimRect.x1 && y >= dimRect.y0 && y < dimRect.y1)
+          p = (0xff << 24) | ((p >> 1) & 0x7f7f7f); // 50% toward black
+      }
+      const o = overlayBuf[i];
+      if (o !== 0xff) p = rgba[o];
+      pixels[i] = p;
+    }
+  }
   ctx.putImageData(imageData, 0, 0);
 }

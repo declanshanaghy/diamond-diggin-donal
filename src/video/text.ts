@@ -63,4 +63,42 @@ export function outtextScaled(p: string, x: number, y: number, c: number, s: num
   }
 }
 
+// --- Splash overlay text: draws into the overlay layer (non-destructive,
+// letter pixels only — the dimmed game stays visible between strokes).
+
+function overlayGlyph(x: number, y: number, ch: string, c: number, s: number, erase: boolean): void {
+  const code = ch.charCodeAt(0);
+  if (code - 32 < 0 || code - 32 >= 0x5f) return;
+  const glyph = cgaFont[code - 32] ?? cgaFont[0]!;
+  for (let row = 0; row < CHR_H; row++)
+    for (let bx = 0; bx < CHR_W; bx++) {
+      const b = glyph[row * CHR_W + bx];
+      for (let p = 0; p < 4; p++) {
+        const v = (b >> (6 - p * 2)) & 3;
+        if (v === 0 && !erase) continue;
+        for (let sy = 0; sy < s; sy++)
+          for (let sx = 0; sx < s; sx++) {
+            const px = x + (bx * 4 + p) * s + sx;
+            const py = y + row * s + sy;
+            if (px < 0 || px >= WIDTH || py < 0 || py >= HEIGHT) continue;
+            screen.overlayBuf[py * WIDTH + px] = erase ? 0xff : c;
+          }
+      }
+    }
+}
+
+export function overlayText(p: string, x: number, y: number, c: number, s = 1): void {
+  for (const ch of p) {
+    overlayGlyph(x, y, /[a-zA-Z0-9]/.test(ch) ? ch : ' ', c, s, false);
+    x += 12 * s;
+  }
+}
+
+export function overlayTextClear(p: string, x: number, y: number, s = 1): void {
+  for (const ch of p) {
+    overlayGlyph(x, y, /[a-zA-Z0-9]/.test(ch) ? ch : ' ', 0, s, true);
+    x += 12 * s;
+  }
+}
+
 export { WIDTH, HEIGHT, getPixel };

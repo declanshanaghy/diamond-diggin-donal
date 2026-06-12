@@ -18,6 +18,9 @@ export const input = {
   // is consuming raw keys — mirrors the C original where only one reader
   // calls getkey().
   captureRaw: false,
+  // Splash demo mode: when set, getdirect returns this direction instead of
+  // keyboard input.
+  autopilot: null as number | null,
 };
 
 // Live pressed state (keydown/keyup), the "interrupt flags" of the original.
@@ -192,5 +195,6 @@ export function readdirect(_n: number): void {
 }
 
 export function getdirect(_n: number): number {
+  if (input.autopilot !== null) return input.autopilot;
   return keydir;
 }

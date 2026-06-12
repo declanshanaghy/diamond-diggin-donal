@@ -3,7 +3,16 @@
 // 80000 = 12.5 fps), driven by the requestAnimationFrame accumulator below.
 // Copyright (c) Andrew Jenner 1998-2004. License: GNU GPL v2 (see LICENSE).
 
-import { DIR_LEFT, DIR_RIGHT, FIRSTBAG, FIRSTDIGGER, FIRSTMONSTER } from '../def';
+import {
+  DIR_NONE,
+  DIR_LEFT,
+  DIR_RIGHT,
+  DIR_UP,
+  DIR_DOWN,
+  FIRSTBAG,
+  FIRSTDIGGER,
+  FIRSTMONSTER,
+} from '../def';
 import {
   creatembspr,
   initmbspr,
@@ -18,8 +27,8 @@ import {
   drawlives,
 } from '../drawing';
 import { movedrawspr } from '../sprite';
-import { clearScreen, render } from '../video/screen';
-import { outtext } from '../video/text';
+import { clearScreen, render, setOverlay, setOverlayDim } from '../video/screen';
+import { outtext, overlayText, overlayTextClear } from '../video/text';
 import { game } from './state';
 import { seedrand } from './rng';
 import {
@@ -194,12 +203,92 @@ export function* gameflow(): Frames {
   }
 }
 
+// Splash screen: level 1 plays itself behind a dimmed panel announcing the
+// game in grand fashion. Any key moves on to the high-score/title screen.
+const DEMO_SCRIPT: [number, number][] = [
+  [DIR_LEFT, 28],
+  [DIR_UP, 38],
+  [DIR_RIGHT, 34],
+  [DIR_UP, 36],
+  [DIR_RIGHT, 44],
+  [DIR_DOWN, 30],
+  [DIR_RIGHT, 36],
+  [DIR_UP, 42],
+  [DIR_LEFT, 40],
+  [DIR_DOWN, 36],
+  [DIR_LEFT, 44],
+  [DIR_UP, 30],
+];
+
+function splashDemoInit(): void {
+  initlives();
+  game.players[0].level = game.startlev;
+  game.alldead = false;
+  clearScreen();
+  initlevel();
+  initmbspr();
+  seedrand(Math.floor(performance.now()));
+  game.levnotdrawn = false;
+  drawscreen();
+  musicon();
+}
+
+function drawSplashPanel(): void {
+  setOverlay(true);
+  setOverlayDim(28, 40, 292, 176);
+  overlayText('DIAMOND', 76, 52, 3, 2);
+  overlayText('DIGGIN', 88, 82, 2, 2);
+  overlayText('DONAL', 100, 112, 1, 2);
+}
+
+function* splashScreen(): Frames {
+  drawSplashPanel();
+  splashDemoInit();
+  input.autopilot = DIR_NONE;
+  flushkeybuf();
+  teststart();
+  let step = 0;
+  let stepLeft = DEMO_SCRIPT[0][1];
+  let blink = 0;
+  while (!input.escape) {
+    if (teststart()) break;
+    // advance the canned tour
+    input.autopilot = DEMO_SCRIPT[step][0];
+    if (--stepLeft <= 0) {
+      step = (step + 1) % DEMO_SCRIPT.length;
+      stepLeft = DEMO_SCRIPT[step][1];
+    }
+    game.penalty = 0;
+    dodigger();
+    domonsters();
+    dobags();
+    if (game.penalty > 8) incmont(game.penalty - 8);
+    if (game.alldead || countem() === 0) {
+      soundstop();
+      splashDemoInit();
+      step = 0;
+      stepLeft = DEMO_SCRIPT[0][1];
+    }
+    blink++;
+    if (blink % 50 === 0) overlayText('PRESS ANY KEY', 82, 152, 3);
+    else if (blink % 50 === 25) overlayTextClear('PRESS ANY KEY', 82, 152);
+    yield;
+  }
+  input.autopilot = null;
+  setOverlay(false);
+  soundstop();
+  musicoff();
+  game.alldead = false;
+}
+
 // Title screen with the sprite parade, ported from mainprog() of main.c.
 export function* mainprog(): Frames {
   loadscores();
   input.escape = false;
   do {
     soundstop();
+    yield* splashScreen();
+    if (input.escape) break;
     creatembspr();
     clearScreen();
     drawtitle();
