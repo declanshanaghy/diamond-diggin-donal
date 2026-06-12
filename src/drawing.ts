@@ -36,7 +36,8 @@ import {
   getis,
   first,
 } from './sprite';
-import { setPalette, setIntensity } from './video/screen';
+import { setPalette, setIntensity, putImageIndexed } from './video/screen';
+import { cgaSprites } from './assets/sprites';
 import { outtext } from './video/text';
 import { game } from './game/state';
 import { getlives } from './game/digger';
@@ -218,9 +219,27 @@ export function drawlife(t: number, x: number, y: number): void {
   drawmiscspr(x, y, t + 110, 4, 12);
 }
 
+// The diamond: the original gem's exact silhouette (so the erase mask still
+// fits), recolored shiny white with an icy glint via the extra colors.
+let diamondPix: Uint8Array | null = null;
+
+function getDiamondPix(): Uint8Array {
+  if (!diamondPix) {
+    const src = cgaSprites[108].data;
+    diamondPix = new Uint8Array(16 * 10).fill(0xff);
+    for (let r = 0; r < 10; r++)
+      for (let b = 0; b < 4; b++)
+        for (let p = 0; p < 4; p++) {
+          const v = (src[r * 4 + b] >> (6 - p * 2)) & 3;
+          if (v !== 0) diamondPix[r * 16 + b * 4 + p] = v === 3 ? 5 : 4;
+        }
+  }
+  return diamondPix;
+}
+
 export function drawemerald(x: number, y: number): void {
   initmiscspr(x, y, 4, 10);
-  drawmiscspr(x, y, 108, 4, 10);
+  putImageIndexed(x & -4, y, getDiamondPix(), 16, 10);
   getis();
 }
 

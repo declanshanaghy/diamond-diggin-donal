@@ -12,6 +12,8 @@ import {
   FIRSTBAG,
   FIRSTDIGGER,
   FIRSTMONSTER,
+  MWIDTH,
+  MHEIGHT,
 } from '../def';
 import {
   creatembspr,
@@ -27,10 +29,11 @@ import {
   drawlives,
 } from '../drawing';
 import { movedrawspr } from '../sprite';
-import { clearScreen, render, setOverlay, setOverlayDim } from '../video/screen';
+import { clearScreen, render, setOverlay, setOverlayDim, overlayBuf } from '../video/screen';
 import { outtext, overlayText, overlayTextClear } from '../video/text';
+import { setDemoLevel } from './level';
 import { game } from './state';
-import { seedrand } from './rng';
+import { seedrand, randno } from './rng';
 import {
   initdigger,
   dodigger,
@@ -221,14 +224,59 @@ const DEMO_SCRIPT: [number, number][] = [
   [DIR_UP, 30],
 ];
 
+// A fresh random layout for every splash demo run: a tunnel walk from the
+// monster spawn corner, diamond clusters, and a scattering of gold bags.
+function generateDemoLevel(): string[][] {
+  const g: string[][] = Array.from({ length: MHEIGHT }, () => Array<string>(MWIDTH).fill(' '));
+  const mark = (x: number, y: number, horiz: boolean): void => {
+    const cur = g[y][x];
+    if (horiz) g[y][x] = cur === 'V' || cur === 'S' ? 'S' : 'H';
+    else g[y][x] = cur === 'H' || cur === 'S' ? 'S' : 'V';
+  };
+  let x = 14;
+  let y = 0;
+  g[0][14] = 'S'; // monster spawn corner
+  let lastHoriz = true;
+  const segs = 5 + randno(3);
+  for (let s = 0; s < segs; s++) {
+    lastHoriz = !lastHoriz;
+    const horizSeg = lastHoriz;
+    const len = 3 + randno(6);
+    const dir = randno(2) === 0 ? 1 : -1;
+    for (let i = 0; i < len; i++) {
+      const nx = horizSeg ? x + dir : x;
+      const ny = horizSeg ? y : y + dir;
+      if (nx < 0 || nx >= MWIDTH || ny < 0 || ny >= MHEIGHT) break;
+      x = nx;
+      y = ny;
+      mark(x, y, horizSeg);
+    }
+  }
+  for (let c = 5 + randno(3); c > 0; c--) {
+    const cw = 2 + randno(2);
+    const ch = 2 + randno(2);
+    const cx = randno(MWIDTH - cw);
+    const cy = randno(MHEIGHT - ch);
+    for (let j = 0; j < ch; j++)
+      for (let i = 0; i < cw; i++) if (g[cy + j][cx + i] === ' ') g[cy + j][cx + i] = 'C';
+  }
+  for (let b = 5 + randno(3); b > 0; b--) {
+    const bx = randno(MWIDTH);
+    const by = randno(MHEIGHT - 3);
+    if (bx !== 7 && g[by][bx] === ' ') g[by][bx] = 'B'; // never above Donal's spawn
+  }
+  return g.map((row) => row.join('')).map((row) => row.split(''));
+}
+
 function splashDemoInit(): void {
   initlives();
   game.players[0].level = game.startlev;
   game.alldead = false;
   clearScreen();
+  seedrand(Math.floor(performance.now()));
+  setDemoLevel(generateDemoLevel());
   initlevel();
   initmbspr();
-  seedrand(Math.floor(performance.now()));
   game.levnotdrawn = false;
   drawscreen();
   musicon();
@@ -236,7 +284,9 @@ function splashDemoInit(): void {
 
 function drawSplashPanel(): void {
   setOverlay(true);
-  setOverlayDim(28, 40, 292, 176);
+  setOverlayDim(0, 0, 320, 200);
+  // hide the demo's score/lives bar
+  for (let i = 0; i < 320 * 15; i++) overlayBuf[i] = 0;
   overlayText('DIAMOND', 76, 52, 3, 2);
   overlayText('DIGGIN', 88, 82, 2, 2);
   overlayText('DONAL', 100, 112, 1, 2);
@@ -276,6 +326,7 @@ function* splashScreen(): Frames {
     yield;
   }
   input.autopilot = null;
+  setDemoLevel(null);
   setOverlay(false);
   soundstop();
   musicoff();

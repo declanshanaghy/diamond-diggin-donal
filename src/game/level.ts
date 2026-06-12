@@ -12,7 +12,15 @@ export function levplan(): number {
   return l;
 }
 
+// Splash demo plays a randomly generated layout instead of a real level.
+let demoLevel: string[][] | null = null;
+
+export function setDemoLevel(level: string[][] | null): void {
+  demoLevel = level;
+}
+
 export function getlevch(x: number, y: number, l: number): string {
+  if (demoLevel) return demoLevel[y][x];
   // Two-digger mode opens extra tunnels on levels 3/4; not used (diggers=1).
   if ((l === 3 || l === 4) && !game.levfflag && game.diggers === 2 && y === 9 && (x === 6 || x === 8))
     return 'H';

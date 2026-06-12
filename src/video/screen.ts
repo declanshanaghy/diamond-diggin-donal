@@ -21,15 +21,41 @@ const CGA_PALETTES: string[][][] = [
 const vbuf = new Uint8Array(WIDTH * HEIGHT); // color index 0..3 per pixel
 let palette = 0;
 let intensity = 0;
-let rgba = new Uint32Array(4);
+// Two colors beyond the CGA four, reserved for the diamonds: pure white and
+// an icy glint. They ignore palette/intensity switches — always shiny.
+const EXTRA_COLORS = ['#ffffff', '#55ffff'];
+
+let rgba = new Uint32Array(6);
+let rgbaBright = new Uint32Array(6); // splash overlay always renders full bright
 let paletteDirty = true;
 
+function toWord(col: string): number {
+  const v = parseInt(col.slice(1), 16);
+  // little-endian RGBA word: alpha | blue | green | red
+  return (0xff << 24) | ((v & 0xff) << 16) | (v & 0xff00) | (v >>> 16);
+}
+
 function computeRgba(): void {
-  const cols = CGA_PALETTES[palette][intensity];
   for (let c = 0; c < 4; c++) {
-    const v = parseInt(cols[c].slice(1), 16);
-    // little-endian RGBA word: alpha | blue | green | red
-    rgba[c] = (0xff << 24) | ((v & 0xff) << 16) | (v & 0xff00) | (v >>> 16);
+    rgba[c] = toWord(CGA_PALETTES[palette][intensity][c]);
+    rgbaBright[c] = toWord(CGA_PALETTES[palette][1][c]);
+  }
+  for (let c = 0; c < 2; c++) rgba[4 + c] = rgbaBright[4 + c] = toWord(EXTRA_COLORS[c]);
+}
+
+// Masked blit of unpacked color indices (0xff = transparent). Used for the
+// diamonds, whose white/ice colors don't exist in 2bpp CGA data.
+export function putImageIndexed(x: number, y: number, pix: Uint8Array, w: number, h: number): void {
+  for (let row = 0; row < h; row++) {
+    const py = y + row;
+    if (py < 0 || py >= HEIGHT) continue;
+    for (let px = 0; px < w; px++) {
+      const v = pix[row * w + px];
+      if (v === 0xff) continue;
+      const sx = x + px;
+      if (sx < 0 || sx >= WIDTH) continue;
+      vbuf[py * WIDTH + sx] = v;
+    }
   }
 }
 
@@ -155,11 +181,11 @@ export function render(): void {
         const x = i % WIDTH;
         const y = (i / WIDTH) | 0;
         if (x >= dimRect.x0 && x < dimRect.x1 && y >= dimRect.y0 && y < dimRect.y1)
-          // mostly transparent: only 25% toward black
-          p = (0xff << 24) | (((p & 0xffffff) - ((p >> 2) & 0x3f3f3f)) & 0xffffff);
+          // heavily dimmed (~62% toward black); the splash text pops on top
+          p = (0xff << 24) | ((((p >> 1) & 0x7f7f7f) - ((p >> 3) & 0x1f1f1f)) & 0xffffff);
       }
       const o = overlayBuf[i];
-      if (o !== 0xff) p = rgba[o];
+      if (o !== 0xff) p = rgbaBright[o];
       pixels[i] = p;
     }
   }
